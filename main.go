@@ -36,20 +36,6 @@ type Message struct {
 	Value     string
 }
 
-func schemaRegistryClientInit(url string) (c *schemaregistry.Client) {
-	client, err := schemaregistry.NewClient(url)
-
-	if err != nil {
-		log.Panicf("Error creating schemaregistry client: %v", err)
-	}
-	subjects, err := client.Subjects()
-	if err != nil {
-		log.Panicf("Error getting subjects: %v", err)
-	}
-	log.Printf("Found %d subjects in %s ...", len(subjects), url)
-	return client
-}
-
 var c *Options
 
 // DataFlow starts sarama consumer data flow.
@@ -57,6 +43,8 @@ func DataFlow(fn func(Message) error, setters ...Option) {
 	for _, setter := range setters {
 		setter(c)
 	}
+
+
 
 	log.Println("Starting a new Sarama consumer")
 
@@ -172,7 +160,8 @@ func processAvroMsg(m *sarama.ConsumerMessage) (Message, error) {
 
 	if schema == nil {
 		log.Printf("Avro schemaID: %d not found in cache getting from registry", schemaID)
-		sc, err := c.SchemaRegistryClient.GetSchemaByID(int(schemaID))
+		schemaRegistryClient := schemaRegistryClientInit(c.SchemaRegistryClientUrl)
+		sc, err := schemaRegistryClient.GetSchemaByID(int(schemaID))
 		if err != nil {
 			log.Panicf("Error getting SchemaID %d: %v", schemaID, err)
 		}
@@ -202,4 +191,18 @@ func processAvroMsg(m *sarama.ConsumerMessage) (Message, error) {
 	msg := Message{int(schemaID), m.Topic, m.Partition, m.Offset, string(m.Key), string(textual)}
 	//log.Printf("MSG = %s", msg.Value)
 	return msg, nil
+}
+
+func schemaRegistryClientInit(url string) (c *schemaregistry.Client) {
+	client, err := schemaregistry.NewClient(url)
+
+	if err != nil {
+		log.Panicf("Error creating schemaregistry client: %v", err)
+	}
+	subjects, err := client.Subjects()
+	if err != nil {
+		log.Panicf("Error getting subjects: %v", err)
+	}
+	log.Printf("Found %d subjects in %s ...", len(subjects), url)
+	return client
 }

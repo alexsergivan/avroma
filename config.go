@@ -2,7 +2,6 @@ package avroma
 
 import (
 	"github.com/alexsergivan/avroma/cache"
-	schemaregistry "github.com/landoop/schema-registry"
 )
 
 // Options avroma configuration options.
@@ -15,7 +14,7 @@ type Options struct {
 	Verbose              bool
 	MarkMessage          bool
 	AvroSchema           cache.Data
-	SchemaRegistryClient *schemaregistry.Client
+	SchemaRegistryClientUrl string
 }
 
 // Option pointer function to configuration options.
@@ -77,9 +76,9 @@ func AvroSchema(avs cache.Data) Option {
 	}
 }
 
-// SchemaRegistryClient configures github.com/landoop/schema-registry client.
-func SchemaRegistryClient(src *schemaregistry.Client) Option {
+// SchemaRegistryClientUrl configures github.com/landoop/schema-registry client.
+func SchemaRegistryClientUrl(url string) Option {
 	return func(args *Options) {
-		args.SchemaRegistryClient = src
+		args.SchemaRegistryClientUrl = url
 	}
 }
