@@ -198,11 +198,12 @@ func processAvroMsg(m *sarama.ConsumerMessage) (Message, error) {
 
 func schemaRegistryClientInit(url string) (c *schemaregistry.Client) {
 	once.Do(func() {
-		schemaRegistryClient, err := schemaregistry.NewClient(url)
+		client, err := schemaregistry.NewClient(url)
 
 		if err != nil {
 			log.Panicf("Error creating schemaregistry client: %v", err)
 		}
+		schemaRegistryClient = client
 		subjects, err := schemaRegistryClient.Subjects()
 		if err != nil {
 			log.Panicf("Error getting subjects: %v", err)
