@@ -15,6 +15,9 @@ import (
 	"github.com/linkedin/goavro/v2"
 )
 
+var schemaRegistryClient *schemaregistry.Client
+var once sync.Once
+
 func init() {
 	// Default Options.
 	c = &Options{
@@ -194,15 +197,17 @@ func processAvroMsg(m *sarama.ConsumerMessage) (Message, error) {
 }
 
 func schemaRegistryClientInit(url string) (c *schemaregistry.Client) {
-	client, err := schemaregistry.NewClient(url)
+	once.Do(func() {
+		schemaRegistryClient, err := schemaregistry.NewClient(url)
 
-	if err != nil {
-		log.Panicf("Error creating schemaregistry client: %v", err)
-	}
-	subjects, err := client.Subjects()
-	if err != nil {
-		log.Panicf("Error getting subjects: %v", err)
-	}
-	log.Printf("Found %d subjects in %s ...", len(subjects), url)
-	return client
+		if err != nil {
+			log.Panicf("Error creating schemaregistry client: %v", err)
+		}
+		subjects, err := schemaRegistryClient.Subjects()
+		if err != nil {
+			log.Panicf("Error getting subjects: %v", err)
+		}
+		log.Printf("Found %d subjects in %s ...", len(subjects), url)
+	})
+	return schemaRegistryClient
 }
